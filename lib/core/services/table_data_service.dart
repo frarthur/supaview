@@ -163,10 +163,10 @@ class TableDataService {
             .timeout(const Duration(seconds: 15));
       }
 
-      return response.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+      final list = response.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+      return list;
     } catch (e) {
-      debugPrint('fetchRows error: $e');
-      return [];
+      throw Exception('Data fetch failed: $e');
     }
   }
 
