@@ -268,36 +268,35 @@ Actions :
 
 ---
 
-## Phase 2 — Gestion des connexions
+## Phase 2 — Gestion des connexions ✅
 
-* [ ] Ajouter un projet
-* [ ] Modifier un projet
-* [ ] Supprimer un projet
-* [ ] Stockage sécurisé des clés
-* [ ] Test de connexion
-
----
-
-## Phase 3 — Dashboard
-
-* [ ] Informations générales
-* [ ] Statistiques du projet
-* [ ] Navigation
-* [ ] Rafraîchissement automatique
+* [x] Ajouter un projet
+* [x] Modifier un projet
+* [x] Supprimer un projet
+* [x] Stockage sécurisé des clés
+* [x] Test de connexion
 
 ---
 
-## Phase 4 — Gestion des tables
+## Phase 3 — Dashboard ✅
 
-* [ ] Liste des tables
-* [ ] Consultation des données
-* [ ] Recherche
-* [ ] Filtres
-* [ ] Tri
-* [ ] Pagination
-* [ ] Création
-* [ ] Modification
-* [ ] Suppression
+* [x] Informations générales (header avec statut connexion)
+* [x] Statistiques du projet (tables, storage, users)
+* [x] Navigation (shell + bottom nav + drawer sections)
+* [x] Rafraîchissement automatique (pull-to-refresh)
+
+---
+
+## Phase 4 — Gestion des tables ✅
+
+* [x] Liste des tables avec schéma (colonnes, PK)
+* [x] Consultation des données (DataTable scrollable)
+* [x] Recherche avec debounce + colonne cible
+* [x] Tri par colonne
+* [x] Pagination (pages)
+* [x] Création de ligne (formulaire typé)
+* [x] Modification de ligne (double-tap)
+* [x] Suppression de ligne
 
 ---
 
