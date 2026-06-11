@@ -287,17 +287,16 @@ Actions :
 
 ---
 
-## Phase 4 — Gestion des tables
+## Phase 4 — Gestion des tables ✅
 
-* [ ] Liste des tables
-* [ ] Consultation des données
-* [ ] Recherche
-* [ ] Filtres
-* [ ] Tri
-* [ ] Pagination
-* [ ] Création
-* [ ] Modification
-* [ ] Suppression
+* [x] Liste des tables avec schéma (colonnes, PK)
+* [x] Consultation des données (DataTable scrollable)
+* [x] Recherche avec debounce + colonne cible
+* [x] Tri par colonne
+* [x] Pagination (pages)
+* [x] Création de ligne (formulaire typé)
+* [x] Modification de ligne (double-tap)
+* [x] Suppression de ligne
 
 ---
 

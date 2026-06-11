@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supaview/features/projects/domain/entities/project.dart';
 import 'package:supaview/features/projects/presentation/screens/dashboard_screen.dart';
+import 'package:supaview/features/tables/presentation/screens/table_list_screen.dart';
 
 class ProjectShell extends StatefulWidget {
   const ProjectShell({required this.project, super.key});
@@ -21,7 +22,7 @@ class _ProjectShellState extends State<ProjectShell> {
     super.initState();
     _sections = [
       DashboardScreen(project: widget.project),
-      const _PlaceholderSection(title: 'Tables', icon: Icons.table_chart),
+      TableListScreen(project: widget.project),
       const _PlaceholderSection(title: 'SQL Editor', icon: Icons.terminal),
       const _PlaceholderSection(title: 'Storage', icon: Icons.folder),
     ];
