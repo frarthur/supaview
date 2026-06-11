@@ -7,6 +7,7 @@ final statsServiceProvider = Provider.family<SupabaseStatsService?, Project>(
     final service = SupabaseStatsService(
       supabaseUrl: project.supabaseUrl,
       anonKey: project.anonKey,
+      serviceRoleKey: project.serviceRoleKey,
     );
     ref.onDispose(service.dispose);
     return service;

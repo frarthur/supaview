@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:supaview/core/services/project_storage_service.dart';
 import 'package:supaview/features/projects/domain/entities/project.dart';
 import 'package:supaview/features/projects/domain/repositories/project_repository.dart';
@@ -52,17 +52,19 @@ class ProjectRepositoryImpl implements ProjectRepository {
   @override
   Future<bool> testConnection(Project project) async {
     try {
-      final client = SupabaseClient(project.supabaseUrl, project.anonKey);
-      await client.from('_test_connection').select().limit(1);
-      return true;
+      final url = '${project.supabaseUrl.replaceAll(RegExp(r'/$'), '')}/rest/v1/';
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'apikey': project.anonKey,
+              'Authorization': 'Bearer ${project.anonKey}',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+      return response.statusCode == 200 || response.statusCode == 401;
     } catch (_) {
-      try {
-        final client = SupabaseClient(project.supabaseUrl, project.anonKey);
-        await client.from('_test_connection').select().limit(0);
-        return true;
-      } catch (_) {
-        return false;
-      }
+      return false;
     }
   }
 }
