@@ -5,14 +5,11 @@ import 'package:supaview/features/projects/domain/entities/project.dart';
 import 'package:supaview/features/tables/domain/entities/table_info.dart';
 
 final tableDataServiceProvider = Provider.family<TableDataService, Project>(
-  (ref, project) {
-    final service = TableDataService(
-      supabaseUrl: project.supabaseUrl,
-      anonKey: project.anonKey,
-    );
-    ref.onDispose(service.dispose);
-    return service;
-  },
+  (ref, project) => TableDataService(
+    supabaseUrl: project.supabaseUrl,
+    anonKey: project.anonKey,
+    serviceRoleKey: project.serviceRoleKey,
+  ),
 );
 
 final tableListProvider = FutureProvider.family<List<TableInfo>, Project>(

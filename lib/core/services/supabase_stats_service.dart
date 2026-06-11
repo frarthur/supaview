@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProjectStats {
@@ -19,11 +22,17 @@ class SupabaseStatsService {
     required String supabaseUrl,
     required String anonKey,
     String? serviceRoleKey,
-  })  : _client = SupabaseClient(supabaseUrl, anonKey),
+  })  : _supabaseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
+        _anonKey = anonKey,
+        _serviceRoleKey = serviceRoleKey,
+        _client = SupabaseClient(supabaseUrl, anonKey),
         _adminClient = serviceRoleKey != null && serviceRoleKey.isNotEmpty
             ? SupabaseClient(supabaseUrl, serviceRoleKey)
             : null;
 
+  final String _supabaseUrl;
+  final String _anonKey;
+  final String? _serviceRoleKey;
   final SupabaseClient _client;
   final SupabaseClient? _adminClient;
 
@@ -42,14 +51,30 @@ class SupabaseStatsService {
     );
   }
 
+  String get _key => _serviceRoleKey ?? _anonKey;
+
   Future<int> _fetchTablesCount() async {
     try {
-      final response = await _client
-          .from('information_schema.tables')
-          .select('table_name')
-          .eq('table_schema', 'public')
+      final url = Uri.parse('${_supabaseUrl}rest/v1/information_schema.tables')
+          .replace(queryParameters: {
+        'table_schema': 'eq.public',
+        'select': 'table_name',
+      });
+      final response = await http
+          .get(
+            url,
+            headers: {
+              'apikey': _key,
+              'Authorization': 'Bearer $_key',
+            },
+          )
           .timeout(const Duration(seconds: 10));
-      return (response as List).length;
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as List;
+        return body.length;
+      }
+      return 0;
     } catch (_) {
       return 0;
     }
@@ -57,10 +82,7 @@ class SupabaseStatsService {
 
   Future<int> _fetchStorageBucketsCount() async {
     try {
-      final response =
-          await _client.storage.listBuckets().timeout(
-                const Duration(seconds: 10),
-              );
+      final response = await _client.storage.listBuckets();
       return response.length;
     } catch (_) {
       return 0;
@@ -70,10 +92,7 @@ class SupabaseStatsService {
   Future<int> _fetchUsersCount() async {
     try {
       final client = _adminClient ?? _client;
-      final response =
-          await client.auth.admin.listUsers().timeout(
-                const Duration(seconds: 10),
-              );
+      final response = await client.auth.admin.listUsers();
       return response.length;
     } catch (_) {
       return 0;
