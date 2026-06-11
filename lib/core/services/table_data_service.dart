@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supaview/features/tables/domain/entities/column_info.dart';
@@ -128,45 +127,28 @@ class TableDataService {
     String? searchColumn,
   }) async {
     final from = page * pageSize;
-    final to = from + pageSize - 1;
 
     try {
-      PostgrestList response;
+      final url = '${_baseUrl}rest/v1/$table?limit=$pageSize&offset=$from';
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'apikey': _anonKey,
+              'Authorization': 'Bearer $_anonKey',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
-      if (searchQuery != null && searchColumn != null && orderBy != null) {
-        response = await _client
-            .from(table)
-            .select()
-            .ilike(searchColumn, '%$searchQuery%')
-            .order(orderBy, ascending: ascending)
-            .range(from, to)
-            .timeout(const Duration(seconds: 15));
-      } else if (searchQuery != null && searchColumn != null) {
-        response = await _client
-            .from(table)
-            .select()
-            .ilike(searchColumn, '%$searchQuery%')
-            .range(from, to)
-            .timeout(const Duration(seconds: 15));
-      } else if (orderBy != null) {
-        response = await _client
-            .from(table)
-            .select()
-            .order(orderBy, ascending: ascending)
-            .range(from, to)
-            .timeout(const Duration(seconds: 15));
-      } else {
-        response = await _client
-            .from(table)
-            .select()
-            .range(from, to)
-            .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as List;
+        return body.cast<Map<String, dynamic>>();
       }
-
-      final list = response.map((r) => Map<String, dynamic>.from(r as Map)).toList();
-      return list;
+      throw Exception(
+        'HTTP ${response.statusCode}: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+      );
     } catch (e) {
-      throw Exception('Data fetch failed: $e');
+      throw Exception('fetchRows failed for "$table": $e');
     }
   }
 
