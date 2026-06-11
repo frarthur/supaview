@@ -1,55 +1,54 @@
 # SupaView
 
-> Admin mobile pour Supabase — gérez vos bases Supabase directement depuis votre téléphone.
+> Mobile admin for Supabase — manage your Supabase projects directly from your phone.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/frarthur/supaview/releases)
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
-[![Licence](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-SupaView est un véritable **phpMyAdmin pour Supabase sur mobile**, moderne et ergonomique.  
-L'application communique **uniquement** entre votre téléphone et Supabase via HTTPS.  
-Aucun serveur intermédiaire, aucune télémétrie, aucune publicité, aucun abonnement.
+SupaView is a **phpMyAdmin-like mobile app for Supabase**.  
+It communicates **directly between your phone and Supabase via HTTPS** — no intermediate server, no telemetry, no ads, no subscriptions.
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-| | Fonctionnalité | Version |
+| | Feature | Version |
 |---|---|---|
-| ✅ | Connexion sécurisée (URL + Anon Key + Service Role Key) | v1.0.0 |
-| ✅ | Dashboard avec statistiques du projet | v1.0.0 |
-| ✅ | Gestion des projets (ajout, modification, suppression) | v1.0.0 |
-| ✅ | Navigation par onglets (Dashboard, Tables, SQL, Storage) | v1.0.0 |
-| ✅ | Gestion des tables (CRUD, tri, filtre, pagination) | v1.0.0 |
-| ✅ | Éditeur SQL (requêtes SELECT) | v1.0.0 |
-| ✅ | Storage (navigation buckets, fichiers, suppression) | v1.0.0 |
-| ✅ | Auth (gestion des utilisateurs) | v1.0.0 |
-| ✅ | Edge Functions (liste, logs, invocation) | v1.0.0 |
-| ✅ | Thème Material 3 (clair/sombre) | v1.0.0 |
-| 🔜 | Export CSV/JSON | À venir |
-| 🔜 | Mode hors-ligne | À venir |
+| ✅ | Secure connection (URL + Anon Key + Service Role Key) | v1.0.0 |
+| ✅ | Project dashboard with live stats | v1.0.0 |
+| ✅ | Project management (add, edit, delete) | v1.0.0 |
+| ✅ | Tab navigation (Dashboard, Tables, SQL, Storage) | v1.0.0 |
+| ✅ | Table browser (CRUD, sort, filter, pagination) | v1.0.0 |
+| ✅ | SQL editor (SELECT queries) | v1.0.0 |
+| ✅ | Storage browser (buckets, files, delete) | v1.0.0 |
+| ✅ | Auth user management | v1.0.0 |
+| ✅ | Edge Functions (list, logs, invoke) | v1.0.0 |
+| ✅ | Material 3 theme (light/dark) | v1.0.0 |
+| 🔜 | CSV/JSON export | Upcoming |
+| 🔜 | Offline mode | Upcoming |
 
-## 📥 Télécharger
+## 📥 Download
 
-**Dernière version stable :** [v1.0.0](https://github.com/frarthur/supaview/releases/tag/v1.0.0)
+**Latest stable release:** [v1.0.0](https://github.com/frarthur/supaview/releases/tag/v1.0.0)
 
-[<img src="https://img.shields.io/badge/APK-T%C3%A9l%C3%A9charger%20v1.0.0-brightgreen?logo=android" height="40">](https://github.com/frarthur/supaview/releases/download/v1.0.0/supaview-v1.0.0.apk)
+[<img src="https://img.shields.io/badge/APK-Download%20v1.0.0-brightgreen?logo=android" height="40">](https://github.com/frarthur/supaview/releases/download/v1.0.0/supaview-v1.0.0.apk)
 
-> Activez **"Installation depuis des sources inconnues"** dans les paramètres Android pour installer l'APK.
+> Enable **"Install from unknown sources"** in Android settings to install the APK.
 
-## 🚀 Pour commencer
+## 🚀 Getting started
 
-1. Créez un projet Supabase sur [database.new](https://database.new)
-2. Dans votre projet, allez dans **Settings → API Keys**
-3. Copiez l'**URL du projet** et l'**Anon Key** (ou la **Publishable Key**)
-4. Ouvrez SupaView, ajoutez un projet, testez la connexion
-5. Pour les fonctionnalités avancées (stats, SQL), ajoutez la **Service Role Key**
+1. Create a Supabase project at [database.new](https://database.new)
+2. Go to **Settings → API Keys** in your project dashboard
+3. Copy your **Project URL** and **Anon Key** (or **Publishable Key**)
+4. Open SupaView, add a project, test the connection
+5. For advanced features (stats, SQL), add the **Service Role Key**
 
 ## 🏗️ Architecture
 
 ```
 lib/
-├── core/           # Services, constantes, utilitaires
+├── core/           # Services, constants, utilities
 ├── features/       # Clean Architecture
 │   ├── authentication/
 │   ├── projects/
@@ -58,21 +57,21 @@ lib/
 │   ├── storage/
 │   ├── functions/
 │   └── settings/
-├── widgets/        # Widgets partagés
-├── theme/          # Thème Material 3
+├── widgets/        # Shared widgets
+├── theme/          # Material 3 theme
 ├── app.dart
 └── main.dart
 ```
 
-**Stack technique :**
+**Tech stack:**
 - **Flutter 3.38+** • Dart 3.10
-- **Riverpod** — gestion d'état
+- **Riverpod** — state management
 - **GoRouter** — navigation
-- **Supabase Flutter SDK** — API
-- **Hive** — stockage local
-- **Flutter Secure Storage** — clés API chiffrées
+- **Supabase Flutter SDK** — API client
+- **Hive** — local storage
+- **Flutter Secure Storage** — encrypted API keys
 
-## 🔧 Développement
+## 🔧 Development
 
 ```bash
 git clone https://github.com/frarthur/supaview.git
@@ -84,12 +83,12 @@ flutter run
 
 ## 🗺️ Roadmap
 
-Voir [ROADMAP.md](ROADMAP.md) pour le plan complet.
+See [ROADMAP.md](ROADMAP.md) for the full development plan.
 
-## 📄 Licence
+## 📄 License
 
-Projet sous licence MIT. Voir le fichier [LICENSE](LICENSE).
+MIT License. See [LICENSE](LICENSE).
 
 ---
 
-*SupaView n'est pas affilié à Supabase Inc.*
+*SupaView is not affiliated with Supabase Inc.*
