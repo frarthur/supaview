@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:supaview/features/authentication/presentation/auth_screen.dart';
+import 'package:supaview/features/functions/presentation/functions_screen.dart';
 import 'package:supaview/features/projects/domain/entities/project.dart';
 import 'package:supaview/features/projects/presentation/screens/dashboard_screen.dart';
+import 'package:supaview/features/settings/presentation/settings_screen.dart';
+import 'package:supaview/features/sql/presentation/screens/sql_editor_screen.dart';
+import 'package:supaview/features/storage/presentation/screens/storage_screen.dart';
 import 'package:supaview/features/tables/presentation/screens/table_list_screen.dart';
 
 class ProjectShell extends StatefulWidget {
@@ -23,8 +28,8 @@ class _ProjectShellState extends State<ProjectShell> {
     _sections = [
       DashboardScreen(project: widget.project),
       TableListScreen(project: widget.project),
-      const _PlaceholderSection(title: 'SQL Editor', icon: Icons.terminal),
-      const _PlaceholderSection(title: 'Storage', icon: Icons.folder),
+      SqlEditorScreen(project: widget.project),
+      StorageScreen(project: widget.project),
     ];
   }
 
@@ -37,17 +42,32 @@ class _ProjectShellState extends State<ProjectShell> {
           IconButton(
             icon: const Icon(Icons.people),
             tooltip: 'Authentication',
-            onPressed: () => _showComingSoon(context, 'Authentication'),
+            onPressed: () => Navigator.push<dynamic>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AuthScreen(project: widget.project),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.code),
             tooltip: 'Edge Functions',
-            onPressed: () => _showComingSoon(context, 'Edge Functions'),
+            onPressed: () => Navigator.push<dynamic>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FunctionsScreen(project: widget.project),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
-            onPressed: () => _showComingSoon(context, 'Settings'),
+            onPressed: () => Navigator.push<dynamic>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SettingsScreen(project: widget.project),
+              ),
+            ),
           ),
         ],
       ),
@@ -85,54 +105,4 @@ class _ProjectShellState extends State<ProjectShell> {
     );
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(feature),
-        content: Text('$feature will be available in a future update.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlaceholderSection extends StatelessWidget {
-  const _PlaceholderSection({required this.title, required this.icon});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary.withAlpha(80),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming soon',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

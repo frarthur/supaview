@@ -128,38 +128,39 @@ class TableDataService {
     String? searchQuery,
     String? searchColumn,
   }) async {
-    final from = page * pageSize;
-
     try {
-      final params = <String, String>{
-        'limit': pageSize.toString(),
-        'offset': from.toString(),
-      };
-      if (orderBy != null) {
-        params['order'] = ascending ? '$orderBy.asc' : '$orderBy.desc';
-      }
-      if (searchQuery != null && searchColumn != null) {
-        params[searchColumn] = 'like.*$searchQuery*';
-      }
-
-      final url = Uri.parse('${_baseUrl}rest/v1/$table')
-          .replace(queryParameters: params);
+      final from = page * pageSize;
+      final rawUrl = '${_baseUrl}rest/v1/$table?limit=$pageSize&offset=$from';
+      final url = Uri.parse(rawUrl);
       final response = await http
           .get(url, headers: {
-            'apikey': _anonKey,
-            'Authorization': 'Bearer $_anonKey',
+            'apikey': _key,
+            'Authorization': 'Bearer $_key',
           })
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as List;
+        if (body.isEmpty) {
+          if (_serviceRoleKey == null) {
+            throw Exception(
+              'Rien retourné. Vérifie que:\n'
+              '1) La table a des données\n'
+              "2) L'anon key a les droits SELECT\n"
+              '3) Tu as grant select on $table to anon;\n'
+              'Ou ajoute une service_role_key dans les paramètres du projet.',
+            );
+          }
+          throw Exception('Table "$table" vide ou inaccessible avec la clé fournie.');
+        }
         return body.cast<Map<String, dynamic>>();
       }
       final snippet = response.body.length > 300
           ? response.body.substring(0, 300)
           : response.body;
-      throw Exception('HTTP ${response.statusCode}: $snippet');
+      throw Exception('Erreur HTTP ${response.statusCode}: $snippet');
     } catch (e) {
+      if (e is Exception && e.toString().contains('Rien retourné')) rethrow;
       throw Exception('[$table] $e');
     }
   }

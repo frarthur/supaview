@@ -150,20 +150,35 @@ class _TableDataScreenState extends ConsumerState<TableDataScreen> {
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.all(8),
+      clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
         child: DataTable(
           sortColumnIndex: _orderBy != null
               ? columns.indexWhere((c) => c.name == _orderBy)
               : null,
           sortAscending: _ascending,
-          columnSpacing: 24,
+          columnSpacing: 16,
+          headingRowHeight: 44,
+          dataRowMinHeight: 40,
+          dataRowMaxHeight: 60,
+          headingRowColor:
+              WidgetStatePropertyAll(theme.colorScheme.surfaceContainerHighest),
           columns: columns.map((col) {
             return DataColumn(
-              label: Text(
-                col.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              label: SizedBox(
+                width: 120,
+                child: Text(
+                  col.name,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               onSort: (index, asc) {
                 setState(() {
@@ -175,16 +190,20 @@ class _TableDataScreenState extends ConsumerState<TableDataScreen> {
                   '${col.dataType}${col.isPrimaryKey ? ' (PK)' : ''}',
             );
           }).toList(),
-          rows: rows.map((row) {
+          rows: List.generate(rows.length, (i) {
+            final row = rows[i];
             return DataRow(
+              color: WidgetStatePropertyAll(
+                i.isEven ? null : theme.colorScheme.surfaceContainerLow,
+              ),
               cells: columns.map((col) {
                 final value = row[col.name];
                 return DataCell(
                   GestureDetector(
                     onDoubleTap: () =>
                         _openRowEditor(context, existingRow: row),
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 200),
+                    child: SizedBox(
+                      width: 120,
                       child: Text(
                         _formatValue(value),
                         maxLines: 2,
@@ -195,7 +214,7 @@ class _TableDataScreenState extends ConsumerState<TableDataScreen> {
                 );
               }).toList(),
             );
-          }).toList(),
+          }),
         ),
       ),
     );
