@@ -339,17 +339,17 @@ Actions :
 
 ---
 
-## Phase 9 — Publication
+## Phase 9 — Publication ✅
 
-* [ ] Icône
+* [x] README GitHub (badges, téléchargement)
+* [x] Génération du fichier APK
+* [x] Publication sur GitHub (Release v1.0.0)
+* [ ] Icône personnalisée
 * [ ] Splash screen
 * [ ] Captures Play Store
-* [ ] README GitHub
 * [ ] Site web
-* [ ] Politique de confidentialité ("Aucune donnée collectée")
-* [ ] Génération du fichier AAB
+* [ ] Politique de confidentialité
 * [ ] Publication sur Google Play
-* [ ] Publication sur GitHub
 
 ---
 
