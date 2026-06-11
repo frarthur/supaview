@@ -134,7 +134,7 @@ class TableDataService {
         params[searchColumn] = 'like.*$searchQuery*';
       }
 
-      final url = Uri.parse('$_baseUrl/rest/v1/$table')
+      final url = Uri.parse('${_baseUrl}rest/v1/$table')
           .replace(queryParameters: params);
       final response = await http.get(url, headers: {
         'apikey': _anonKey,
@@ -153,7 +153,7 @@ class TableDataService {
 
   Future<void> insertRow(String table, Map<String, dynamic> data) async {
     await http.post(
-      Uri.parse('$_baseUrl/rest/v1/$table'),
+      Uri.parse('${_baseUrl}rest/v1/$table'),
       headers: {
         'apikey': _anonKey,
         'Authorization': 'Bearer $_anonKey',
@@ -170,7 +170,7 @@ class TableDataService {
     dynamic primaryKeyValue,
     Map<String, dynamic> data,
   ) async {
-    final url = Uri.parse('$_baseUrl/rest/v1/$table')
+    final url = Uri.parse('${_baseUrl}rest/v1/$table')
         .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
     await http.patch(
       url,
@@ -189,7 +189,7 @@ class TableDataService {
     String primaryKeyColumn,
     dynamic primaryKeyValue,
   ) async {
-    final url = Uri.parse('$_baseUrl/rest/v1/$table')
+    final url = Uri.parse('${_baseUrl}rest/v1/$table')
         .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
     await http.delete(
       url,
