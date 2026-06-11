@@ -19,15 +19,27 @@ class TableDataService {
 
   String get _key => _serviceRoleKey ?? _anonKey;
 
+  Map<String, dynamic>? _specCache;
+
   Future<List<TableInfo>> fetchTables() async {
-    final tableNames = await _discoverTableNames();
-    if (tableNames.isEmpty) return [];
+    final spec = await _getOpenApiSpec();
+    if (spec == null) return [];
+
+    final paths = spec['paths'] as Map<String, dynamic>?;
+    if (paths == null) return [];
+
+    final definitions = spec['definitions'] as Map<String, dynamic>?;
 
     final tables = <TableInfo>[];
-    for (final name in tableNames) {
-      final columns = await _inferColumns(name);
+    for (final entry in paths.entries) {
+      final path = entry.key;
+      if (path.contains('{') || path.startsWith('/rpc')) continue;
+
+      final tableName = path.substring(1);
+      final columns = _parseColumnsFromSpec(path, entry.value as Map<String, dynamic>, definitions);
+
       tables.add(TableInfo(
-        name: name,
+        name: tableName,
         schema: 'public',
         columns: columns,
         rowCount: 0,
@@ -36,7 +48,9 @@ class TableDataService {
     return tables;
   }
 
-  Future<List<String>> _discoverTableNames() async {
+  Future<Map<String, dynamic>?> _getOpenApiSpec() async {
+    if (_specCache != null) return _specCache;
+
     try {
       final response = await http.get(
         Uri.parse('${_baseUrl}rest/v1/'),
@@ -46,64 +60,54 @@ class TableDataService {
         },
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) return null;
 
       final spec = jsonDecode(response.body) as Map<String, dynamic>;
-      final paths = spec['paths'] as Map<String, dynamic>?;
-      if (paths == null) return [];
-
-      return paths.keys
-          .where((path) =>
-              path.startsWith('/') &&
-              !path.contains('{') &&
-              !path.startsWith('/rpc'))
-          .map((path) => path.substring(1))
-          .toList();
+      _specCache = spec;
+      return spec;
     } catch (_) {
-      return [];
+      return null;
     }
   }
 
-  Future<List<ColumnInfo>> _inferColumns(String table) async {
+  List<ColumnInfo> _parseColumnsFromSpec(
+    String path,
+    Map<String, dynamic> pathItem,
+    Map<String, dynamic>? definitions,
+  ) {
     try {
-      final response = await http.get(
-        Uri.parse('${_baseUrl}rest/v1/$table?limit=1'),
-        headers: {
-          'apikey': _anonKey,
-          'Authorization': 'Bearer $_anonKey',
-        },
-      ).timeout(const Duration(seconds: 10));
+      final getMethod = pathItem['get'] as Map<String, dynamic>?;
+      final responses = getMethod?['responses'] as Map<String, dynamic>?;
+      final response200 = responses?['200'] as Map<String, dynamic>?;
+      final schema = response200?['schema'] as Map<String, dynamic>?;
+      final items = schema?['items'] as Map<String, dynamic>?;
+      var properties = items?['properties'] as Map<String, dynamic>?;
 
-      if (response.statusCode == 200) {
-        final body = jsonDecode(response.body) as List;
-        if (body.isNotEmpty) {
-          final row = body.first as Map<String, dynamic>;
-          return row.keys.map((key) {
-            final value = row[key];
-            return ColumnInfo(
-              name: key,
-              dataType: _inferType(value),
-              isNullable: value == null,
-              isPrimaryKey: false,
-            );
-          }).toList();
+      if (properties == null) {
+        final ref = items?[r'$ref'] as String?;
+        if (ref != null && definitions != null) {
+          final defName = ref.split('/').last;
+          final def = definitions[defName] as Map<String, dynamic>?;
+          properties = def?['properties'] as Map<String, dynamic>?;
         }
       }
 
-      return [];
+      if (properties == null) return [];
+
+      return properties.entries.map((e) {
+        final prop = e.value as Map<String, dynamic>?;
+        final type = prop?['type'] as String? ?? 'text';
+        final format = prop?['format'] as String?;
+        return ColumnInfo(
+          name: e.key,
+          dataType: format != null ? '$type($format)' : type,
+          isNullable: true,
+          isPrimaryKey: false,
+        );
+      }).toList();
     } catch (_) {
       return [];
     }
-  }
-
-  String _inferType(dynamic value) {
-    if (value == null) return 'text';
-    if (value is int) return 'integer';
-    if (value is double) return 'numeric';
-    if (value is bool) return 'boolean';
-    if (value is List) return 'array';
-    if (value is Map) return 'json';
-    return 'text';
   }
 
   Future<List<Map<String, dynamic>>> fetchRows({

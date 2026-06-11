@@ -82,7 +82,6 @@ class SupabaseStatsService {
             headers: {
               'apikey': _anonKey,
               'Authorization': 'Bearer $_anonKey',
-              'Accept': 'application/json',
             },
           )
           .timeout(const Duration(seconds: 10));
@@ -93,14 +92,9 @@ class SupabaseStatsService {
       final paths = spec['paths'] as Map<String, dynamic>?;
       if (paths == null) return 0;
 
-      final tables = paths.keys
-          .where((path) =>
-              path.startsWith('/') &&
-              !path.contains('{') &&
-              !path.startsWith('/rpc'))
-          .map((path) => path.substring(1))
-          .toList();
-      return tables.length;
+      return paths.keys
+          .where((p) => p.startsWith('/') && !p.contains('{') && !p.startsWith('/rpc'))
+          .length;
     } catch (_) {
       return 0;
     }
