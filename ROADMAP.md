@@ -278,12 +278,12 @@ Actions :
 
 ---
 
-## Phase 3 — Dashboard
+## Phase 3 — Dashboard ✅
 
-* [ ] Informations générales
-* [ ] Statistiques du projet
-* [ ] Navigation
-* [ ] Rafraîchissement automatique
+* [x] Informations générales (header avec statut connexion)
+* [x] Statistiques du projet (tables, storage, users)
+* [x] Navigation (shell + bottom nav + drawer sections)
+* [x] Rafraîchissement automatique (pull-to-refresh)
 
 ---
 

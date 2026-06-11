@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supaview/features/projects/domain/entities/project.dart';
 import 'package:supaview/features/projects/presentation/screens/add_project_screen.dart';
-import 'package:supaview/features/projects/presentation/screens/project_detail_screen.dart';
 import 'package:supaview/features/projects/presentation/screens/project_list_screen.dart';
+import 'package:supaview/features/projects/presentation/screens/project_shell.dart';
 
 class AppRouter {
   AppRouter();
@@ -22,9 +21,13 @@ class AppRouter {
         ),
         GoRoute(
           path: '/projects/:id',
-          builder: (context, state) => ProjectDetailScreen(
-            projectId: state.pathParameters['id']!,
-          ),
+          builder: (context, state) {
+            final project = state.extra as Project?;
+            if (project == null) {
+              return const ProjectListScreen();
+            }
+            return ProjectShell(project: project);
+          },
         ),
         GoRoute(
           path: '/projects/:id/edit',
@@ -35,13 +38,5 @@ class AppRouter {
         ),
       ],
     );
-  }
-
-  static void goToAddProject(BuildContext context) {
-    context.push('/projects/add');
-  }
-
-  static void goToProjectDetail(BuildContext context, String id) {
-    context.push('/projects/$id');
   }
 }

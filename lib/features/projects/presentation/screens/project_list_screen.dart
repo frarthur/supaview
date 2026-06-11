@@ -14,12 +14,6 @@ class ProjectListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Projects'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
       ),
       body: projectsAsync.when(
         data: (projects) {
@@ -57,7 +51,10 @@ class ProjectListScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 return ProjectCard(
                   project: projects[index],
-                  onTap: () => context.push('/projects/${projects[index].id}'),
+                  onTap: () => context.push(
+                    '/projects/${projects[index].id}',
+                    extra: projects[index],
+                  ),
                 );
               },
             ),
