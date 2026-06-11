@@ -1,4 +1,3 @@
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProjectStats {
@@ -20,54 +19,27 @@ class SupabaseStatsService {
     required String supabaseUrl,
     required String anonKey,
     String? serviceRoleKey,
-  })  : _supabaseUrl = supabaseUrl,
-        _anonKey = anonKey,
-        _client = SupabaseClient(supabaseUrl, anonKey),
+  })  : _client = SupabaseClient(supabaseUrl, anonKey),
         _adminClient = serviceRoleKey != null && serviceRoleKey.isNotEmpty
             ? SupabaseClient(supabaseUrl, serviceRoleKey)
             : null;
 
-  final String _supabaseUrl;
-  final String _anonKey;
   final SupabaseClient _client;
   final SupabaseClient? _adminClient;
 
   Future<ProjectStats> fetchStats() async {
-    final isConnected = await _checkConnection();
-    if (!isConnected) {
-      return ProjectStats(
-        tablesCount: 0,
-        storageBucketsCount: 0,
-        usersCount: 0,
-        isConnected: false,
-      );
-    }
-
-    final results = await Future.wait([
-      _fetchTablesCount(),
-      _fetchStorageBucketsCount(),
-      _fetchUsersCount(),
-    ]);
+    final tablesCount = await _fetchTablesCount();
+    final storageBucketsCount = await _fetchStorageBucketsCount();
+    final usersCount = await _fetchUsersCount();
+    final isConnected =
+        tablesCount > 0 || storageBucketsCount > 0 || usersCount > 0;
 
     return ProjectStats(
-      tablesCount: results[0],
-      storageBucketsCount: results[1],
-      usersCount: results[2],
-      isConnected: true,
+      tablesCount: tablesCount,
+      storageBucketsCount: storageBucketsCount,
+      usersCount: usersCount,
+      isConnected: isConnected,
     );
-  }
-
-  Future<bool> _checkConnection() async {
-    try {
-      final url = '$_supabaseUrl/rest/v1/';
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'apikey': _anonKey},
-      ).timeout(const Duration(seconds: 10));
-      return response.statusCode == 200 || response.statusCode == 401 || response.statusCode == 400;
-    } catch (_) {
-      return false;
-    }
   }
 
   Future<int> _fetchTablesCount() async {
@@ -75,8 +47,9 @@ class SupabaseStatsService {
       final response = await _client
           .from('information_schema.tables')
           .select('table_name')
-          .eq('table_schema', 'public');
-      return response.length;
+          .eq('table_schema', 'public')
+          .timeout(const Duration(seconds: 10));
+      return (response as List).length;
     } catch (_) {
       return 0;
     }
@@ -84,7 +57,10 @@ class SupabaseStatsService {
 
   Future<int> _fetchStorageBucketsCount() async {
     try {
-      final response = await _client.storage.listBuckets();
+      final response =
+          await _client.storage.listBuckets().timeout(
+                const Duration(seconds: 10),
+              );
       return response.length;
     } catch (_) {
       return 0;
@@ -94,7 +70,10 @@ class SupabaseStatsService {
   Future<int> _fetchUsersCount() async {
     try {
       final client = _adminClient ?? _client;
-      final response = await client.auth.admin.listUsers();
+      final response =
+          await client.auth.admin.listUsers().timeout(
+                const Duration(seconds: 10),
+              );
       return response.length;
     } catch (_) {
       return 0;
