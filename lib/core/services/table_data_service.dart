@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supaview/features/tables/domain/entities/column_info.dart';
 import 'package:supaview/features/tables/domain/entities/table_info.dart';
 
@@ -11,11 +13,13 @@ class TableDataService {
     String? serviceRoleKey,
   })  : _baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
         _anonKey = anonKey,
-        _serviceRoleKey = serviceRoleKey;
+        _serviceRoleKey = serviceRoleKey,
+        _client = SupabaseClient(supabaseUrl, anonKey);
 
   final String _baseUrl;
   final String _anonKey;
   final String? _serviceRoleKey;
+  final SupabaseClient _client;
 
   String get _key => _serviceRoleKey ?? _anonKey;
 
@@ -36,7 +40,11 @@ class TableDataService {
       if (path.contains('{') || path.startsWith('/rpc')) continue;
 
       final tableName = path.substring(1);
-      final columns = _parseColumnsFromSpec(path, entry.value as Map<String, dynamic>, definitions);
+      final columns = _parseColumnsFromSpec(
+        path,
+        entry.value as Map<String, dynamic>,
+        definitions,
+      );
 
       tables.add(TableInfo(
         name: tableName,
@@ -120,48 +128,50 @@ class TableDataService {
     String? searchColumn,
   }) async {
     final from = page * pageSize;
+    final to = from + pageSize - 1;
 
     try {
-      final params = <String, String>{
-        'select': '*',
-        'offset': from.toString(),
-        'limit': pageSize.toString(),
-      };
-      if (orderBy != null) {
-        params['order'] = ascending ? '$orderBy.asc' : '$orderBy.desc';
-      }
-      if (searchQuery != null && searchColumn != null) {
-        params[searchColumn] = 'like.*$searchQuery*';
+      PostgrestList response;
+
+      if (searchQuery != null && searchColumn != null && orderBy != null) {
+        response = await _client
+            .from(table)
+            .select()
+            .ilike(searchColumn, '%$searchQuery%')
+            .order(orderBy, ascending: ascending)
+            .range(from, to)
+            .timeout(const Duration(seconds: 15));
+      } else if (searchQuery != null && searchColumn != null) {
+        response = await _client
+            .from(table)
+            .select()
+            .ilike(searchColumn, '%$searchQuery%')
+            .range(from, to)
+            .timeout(const Duration(seconds: 15));
+      } else if (orderBy != null) {
+        response = await _client
+            .from(table)
+            .select()
+            .order(orderBy, ascending: ascending)
+            .range(from, to)
+            .timeout(const Duration(seconds: 15));
+      } else {
+        response = await _client
+            .from(table)
+            .select()
+            .range(from, to)
+            .timeout(const Duration(seconds: 15));
       }
 
-      final url = Uri.parse('${_baseUrl}rest/v1/$table')
-          .replace(queryParameters: params);
-      final response = await http.get(url, headers: {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_anonKey',
-      }).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .cast<Map<String, dynamic>>();
-      }
-      return [];
-    } catch (_) {
+      return response.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+    } catch (e) {
+      debugPrint('fetchRows error: $e');
       return [];
     }
   }
 
   Future<void> insertRow(String table, Map<String, dynamic> data) async {
-    await http.post(
-      Uri.parse('${_baseUrl}rest/v1/$table'),
-      headers: {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_anonKey',
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      },
-      body: jsonEncode(data),
-    );
+    await _client.from(table).insert(data).timeout(const Duration(seconds: 15));
   }
 
   Future<void> updateRow(
@@ -170,18 +180,11 @@ class TableDataService {
     dynamic primaryKeyValue,
     Map<String, dynamic> data,
   ) async {
-    final url = Uri.parse('${_baseUrl}rest/v1/$table')
-        .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
-    await http.patch(
-      url,
-      headers: {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_anonKey',
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      },
-      body: jsonEncode(data),
-    );
+    await _client
+        .from(table)
+        .update(data)
+        .eq(primaryKeyColumn, primaryKeyValue as Object)
+        .timeout(const Duration(seconds: 15));
   }
 
   Future<void> deleteRow(
@@ -189,14 +192,14 @@ class TableDataService {
     String primaryKeyColumn,
     dynamic primaryKeyValue,
   ) async {
-    final url = Uri.parse('${_baseUrl}rest/v1/$table')
-        .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
-    await http.delete(
-      url,
-      headers: {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_anonKey',
-      },
-    );
+    await _client
+        .from(table)
+        .delete()
+        .eq(primaryKeyColumn, primaryKeyValue as Object)
+        .timeout(const Duration(seconds: 15));
+  }
+
+  void dispose() {
+    _client.dispose();
   }
 }
