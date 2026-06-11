@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supaview/features/projects/domain/entities/project.dart';
+import 'package:supaview/features/projects/presentation/screens/add_project_screen.dart';
+import 'package:supaview/features/projects/presentation/screens/project_detail_screen.dart';
+import 'package:supaview/features/projects/presentation/screens/project_list_screen.dart';
 
 class AppRouter {
   AppRouter();
@@ -10,51 +14,34 @@ class AppRouter {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => const _PlaceholderScreen(title: 'Home'),
+          builder: (context, state) => const ProjectListScreen(),
         ),
         GoRoute(
-          path: '/projects',
-          builder: (context, state) =>
-              const _PlaceholderScreen(title: 'Projects'),
-          routes: [
-            GoRoute(
-              path: 'add',
-              builder: (context, state) =>
-                  const _PlaceholderScreen(title: 'Add Project'),
-            ),
-            GoRoute(
-              path: ':id',
-              builder: (context, state) => _PlaceholderScreen(
-                title: 'Project ${state.pathParameters['id']}',
-              ),
-            ),
-          ],
+          path: '/projects/add',
+          builder: (context, state) => const AddProjectScreen(),
         ),
         GoRoute(
-          path: '/settings',
-          builder: (context, state) =>
-              const _PlaceholderScreen(title: 'Settings'),
+          path: '/projects/:id',
+          builder: (context, state) => ProjectDetailScreen(
+            projectId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:id/edit',
+          builder: (context, state) {
+            final project = state.extra as Project?;
+            return AddProjectScreen(project: project);
+          },
         ),
       ],
     );
   }
-}
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
+  static void goToAddProject(BuildContext context) {
+    context.push('/projects/add');
+  }
 
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
-    );
+  static void goToProjectDetail(BuildContext context, String id) {
+    context.push('/projects/$id');
   }
 }

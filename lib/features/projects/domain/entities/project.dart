@@ -1,19 +1,20 @@
-class Project {
-  Project({
-    required this.id,
-    required this.name,
-    required this.supabaseUrl,
-    required this.anonKey,
-    this.serviceRoleKey,
-    this.color,
-    this.createdAt,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String name;
-  final String supabaseUrl;
-  final String anonKey;
-  final String? serviceRoleKey;
-  final String? color;
-  final DateTime? createdAt;
+part 'project.freezed.dart';
+part 'project.g.dart';
+
+@freezed
+class Project with _$Project {
+  const factory Project({
+    required String id,
+    required String name,
+    required String supabaseUrl,
+    required String anonKey,
+    String? serviceRoleKey,
+    @Default('') String color,
+    DateTime? createdAt,
+  }) = _Project;
+
+  factory Project.fromJson(Map<String, dynamic> json) =>
+      _$ProjectFromJson(json);
 }

@@ -268,13 +268,13 @@ Actions :
 
 ---
 
-## Phase 2 — Gestion des connexions
+## Phase 2 — Gestion des connexions ✅
 
-* [ ] Ajouter un projet
-* [ ] Modifier un projet
-* [ ] Supprimer un projet
-* [ ] Stockage sécurisé des clés
-* [ ] Test de connexion
+* [x] Ajouter un projet
+* [x] Modifier un projet
+* [x] Supprimer un projet
+* [x] Stockage sécurisé des clés
+* [x] Test de connexion
 
 ---
 
