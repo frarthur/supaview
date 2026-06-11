@@ -22,59 +22,85 @@ class SupabaseStatsService {
     required String supabaseUrl,
     required String anonKey,
     String? serviceRoleKey,
-  })  : _supabaseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
+  })  : _baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
         _anonKey = anonKey,
-        _serviceRoleKey = serviceRoleKey,
         _client = SupabaseClient(supabaseUrl, anonKey),
         _adminClient = serviceRoleKey != null && serviceRoleKey.isNotEmpty
             ? SupabaseClient(supabaseUrl, serviceRoleKey)
             : null;
 
-  final String _supabaseUrl;
+  final String _baseUrl;
   final String _anonKey;
-  final String? _serviceRoleKey;
   final SupabaseClient _client;
   final SupabaseClient? _adminClient;
 
   Future<ProjectStats> fetchStats() async {
+    final isConnected = await _healthCheck();
+    if (!isConnected) {
+      return ProjectStats(
+        tablesCount: 0,
+        storageBucketsCount: 0,
+        usersCount: 0,
+        isConnected: false,
+      );
+    }
+
     final tablesCount = await _fetchTablesCount();
     final storageBucketsCount = await _fetchStorageBucketsCount();
     final usersCount = await _fetchUsersCount();
-    final isConnected =
-        tablesCount > 0 || storageBucketsCount > 0 || usersCount > 0;
 
     return ProjectStats(
       tablesCount: tablesCount,
       storageBucketsCount: storageBucketsCount,
       usersCount: usersCount,
-      isConnected: isConnected,
+      isConnected: true,
     );
   }
 
-  String get _key => _serviceRoleKey ?? _anonKey;
+  Future<bool> _healthCheck() async {
+    try {
+      await http
+          .get(
+            Uri.parse('${_baseUrl}rest/v1/'),
+            headers: {
+              'apikey': _anonKey,
+              'Authorization': 'Bearer $_anonKey',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<int> _fetchTablesCount() async {
     try {
-      final url = Uri.parse('${_supabaseUrl}rest/v1/information_schema.tables')
-          .replace(queryParameters: {
-        'table_schema': 'eq.public',
-        'select': 'table_name',
-      });
       final response = await http
           .get(
-            url,
+            Uri.parse('${_baseUrl}rest/v1/'),
             headers: {
-              'apikey': _key,
-              'Authorization': 'Bearer $_key',
+              'apikey': _anonKey,
+              'Authorization': 'Bearer $_anonKey',
+              'Accept': 'application/json',
             },
           )
           .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        final body = jsonDecode(response.body) as List;
-        return body.length;
-      }
-      return 0;
+      if (response.statusCode != 200) return 0;
+
+      final spec = jsonDecode(response.body) as Map<String, dynamic>;
+      final paths = spec['paths'] as Map<String, dynamic>?;
+      if (paths == null) return 0;
+
+      final tables = paths.keys
+          .where((path) =>
+              path.startsWith('/') &&
+              !path.contains('{') &&
+              !path.startsWith('/rpc'))
+          .map((path) => path.substring(1))
+          .toList();
+      return tables.length;
     } catch (_) {
       return 0;
     }

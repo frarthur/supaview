@@ -9,153 +9,101 @@ class TableDataService {
     required String supabaseUrl,
     required String anonKey,
     String? serviceRoleKey,
-  })  : _supabaseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
+  })  : _baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/',
         _anonKey = anonKey,
         _serviceRoleKey = serviceRoleKey;
 
-  final String _supabaseUrl;
+  final String _baseUrl;
   final String _anonKey;
   final String? _serviceRoleKey;
 
   String get _key => _serviceRoleKey ?? _anonKey;
 
   Future<List<TableInfo>> fetchTables() async {
-    final tables = await _queryTables();
-    if (tables.isEmpty) return [];
+    final tableNames = await _discoverTableNames();
+    if (tableNames.isEmpty) return [];
 
-    final columns = await _queryColumns();
-    final primaryKeys = await _queryPrimaryKeys();
-
-    return tables.map((t) {
-      final tableName = t['table_name'] as String;
-      final cols = (columns[tableName] ?? []).map((c) {
-        return ColumnInfo(
-          name: c['column_name'] as String? ?? '',
-          dataType: c['data_type'] as String? ?? '',
-          isNullable: c['is_nullable'] == 'YES',
-          isPrimaryKey:
-              primaryKeys[tableName]?.contains(c['column_name']) ?? false,
-          defaultValue: c['column_default'] as String?,
-        );
-      }).toList();
-
-      return TableInfo(name: tableName, schema: 'public', columns: cols, rowCount: 0);
-    }).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> _queryTables() async {
-    try {
-      final url = Uri.parse('${_supabaseUrl}rest/v1/information_schema.tables')
-          .replace(queryParameters: {
-        'table_schema': 'eq.public',
-        'table_type': 'eq.BASE TABLE',
-        'select': 'table_name,table_schema',
-      });
-      final response = await http
-          .get(url, headers: {
-            'apikey': _key,
-            'Authorization': 'Bearer $_key',
-          })
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .cast<Map<String, dynamic>>();
-      }
-      return [];
-    } catch (_) {
-      return [];
+    final tables = <TableInfo>[];
+    for (final name in tableNames) {
+      final columns = await _inferColumns(name);
+      tables.add(TableInfo(
+        name: name,
+        schema: 'public',
+        columns: columns,
+        rowCount: 0,
+      ));
     }
+    return tables;
   }
 
-  Future<Map<String, List<Map<String, dynamic>>>> _queryColumns() async {
+  Future<List<String>> _discoverTableNames() async {
     try {
-      final url =
-          Uri.parse('${_supabaseUrl}rest/v1/information_schema.columns')
-              .replace(queryParameters: {
-        'table_schema': 'eq.public',
-        'select': 'table_name,column_name,data_type,is_nullable,column_default',
-      });
-      final response = await http
-          .get(url, headers: {
-            'apikey': _key,
-            'Authorization': 'Bearer $_key',
-          })
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        Uri.parse('${_baseUrl}rest/v1/'),
+        headers: {
+          'apikey': _key,
+          'Authorization': 'Bearer $_key',
+        },
+      ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        final rows = (jsonDecode(response.body) as List)
-            .cast<Map<String, dynamic>>();
-        final result = <String, List<Map<String, dynamic>>>{};
-        for (final r in rows) {
-          final tableName = r['table_name'] as String?;
-          if (tableName == null) continue;
-          result.putIfAbsent(tableName, () => []).add(r);
-        }
-        return result;
-      }
-      return {};
-    } catch (_) {
-      return {};
-    }
-  }
+      if (response.statusCode != 200) return [];
 
-  Future<Map<String, Set<String>>> _queryPrimaryKeys() async {
-    try {
-      final url = Uri.parse(
-              '${_supabaseUrl}rest/v1/information_schema.table_constraints')
-          .replace(queryParameters: {
-        'table_schema': 'eq.public',
-        'constraint_type': 'eq.PRIMARY KEY',
-        'select': 'table_name',
-      });
-      final response = await http
-          .get(url, headers: {
-            'apikey': _key,
-            'Authorization': 'Bearer $_key',
-          })
-          .timeout(const Duration(seconds: 10));
+      final spec = jsonDecode(response.body) as Map<String, dynamic>;
+      final paths = spec['paths'] as Map<String, dynamic>?;
+      if (paths == null) return [];
 
-      if (response.statusCode != 200) return {};
-
-      final tablesWithPK = (jsonDecode(response.body) as List)
-          .cast<Map<String, dynamic>>()
-          .map((r) => r['table_name'] as String?)
-          .whereType<String>()
+      return paths.keys
+          .where((path) =>
+              path.startsWith('/') &&
+              !path.contains('{') &&
+              !path.startsWith('/rpc'))
+          .map((path) => path.substring(1))
           .toList();
+    } catch (_) {
+      return [];
+    }
+  }
 
-      if (tablesWithPK.isEmpty) return {};
+  Future<List<ColumnInfo>> _inferColumns(String table) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_baseUrl}rest/v1/$table?limit=1'),
+        headers: {
+          'apikey': _anonKey,
+          'Authorization': 'Bearer $_anonKey',
+        },
+      ).timeout(const Duration(seconds: 10));
 
-      final keyUrl = Uri.parse(
-              '${_supabaseUrl}rest/v1/information_schema.key_column_usage')
-          .replace(queryParameters: {
-        'table_schema': 'eq.public',
-        'table_name': 'in.(${tablesWithPK.join(',')})',
-        'select': 'table_name,column_name',
-      });
-      final keyResponse = await http
-          .get(keyUrl, headers: {
-            'apikey': _key,
-            'Authorization': 'Bearer $_key',
-          })
-          .timeout(const Duration(seconds: 10));
-
-      if (keyResponse.statusCode != 200) return {};
-
-      final keyRows = (jsonDecode(keyResponse.body) as List)
-          .cast<Map<String, dynamic>>();
-      final result = <String, Set<String>>{};
-      for (final k in keyRows) {
-        final tableName = k['table_name'] as String?;
-        final columnName = k['column_name'] as String?;
-        if (tableName != null && columnName != null) {
-          result.putIfAbsent(tableName, () => {}).add(columnName);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as List;
+        if (body.isNotEmpty) {
+          final row = body.first as Map<String, dynamic>;
+          return row.keys.map((key) {
+            final value = row[key];
+            return ColumnInfo(
+              name: key,
+              dataType: _inferType(value),
+              isNullable: value == null,
+              isPrimaryKey: false,
+            );
+          }).toList();
         }
       }
-      return result;
+
+      return [];
     } catch (_) {
-      return {};
+      return [];
     }
+  }
+
+  String _inferType(dynamic value) {
+    if (value == null) return 'text';
+    if (value is int) return 'integer';
+    if (value is double) return 'numeric';
+    if (value is bool) return 'boolean';
+    if (value is List) return 'array';
+    if (value is Map) return 'json';
+    return 'text';
   }
 
   Future<List<Map<String, dynamic>>> fetchRows({
@@ -182,18 +130,14 @@ class TableDataService {
         params[searchColumn] = 'like.*$searchQuery*';
       }
 
-      final url = Uri.parse('$_supabaseUrl/rest/v1/$table')
+      final url = Uri.parse('$_baseUrl/rest/v1/$table')
           .replace(queryParameters: params);
-      final response = await http
-          .get(url, headers: {
-            'apikey': _anonKey,
-            'Authorization': 'Bearer $_anonKey',
-            'Range-Unit': 'items',
-            'Prefer': 'count=exact',
-          })
-          .timeout(const Duration(seconds: 15));
+      final response = await http.get(url, headers: {
+        'apikey': _anonKey,
+        'Authorization': 'Bearer $_anonKey',
+      }).timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 200 || response.statusCode == 206) {
+      if (response.statusCode == 200) {
         return (jsonDecode(response.body) as List)
             .cast<Map<String, dynamic>>();
       }
@@ -205,7 +149,7 @@ class TableDataService {
 
   Future<void> insertRow(String table, Map<String, dynamic> data) async {
     await http.post(
-      Uri.parse('$_supabaseUrl/rest/v1/$table'),
+      Uri.parse('$_baseUrl/rest/v1/$table'),
       headers: {
         'apikey': _anonKey,
         'Authorization': 'Bearer $_anonKey',
@@ -222,7 +166,7 @@ class TableDataService {
     dynamic primaryKeyValue,
     Map<String, dynamic> data,
   ) async {
-    final url = Uri.parse('$_supabaseUrl/rest/v1/$table')
+    final url = Uri.parse('$_baseUrl/rest/v1/$table')
         .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
     await http.patch(
       url,
@@ -241,7 +185,7 @@ class TableDataService {
     String primaryKeyColumn,
     dynamic primaryKeyValue,
   ) async {
-    final url = Uri.parse('$_supabaseUrl/rest/v1/$table')
+    final url = Uri.parse('$_baseUrl/rest/v1/$table')
         .replace(queryParameters: {primaryKeyColumn: 'eq.$primaryKeyValue'});
     await http.delete(
       url,
