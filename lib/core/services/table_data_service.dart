@@ -126,16 +126,15 @@ class TableDataService {
     String? searchQuery,
     String? searchColumn,
   }) async {
-    final from = page * pageSize;
-
     try {
-      final url = '${_baseUrl}rest/v1/$table?limit=$pageSize&offset=$from';
+      final url = '${_baseUrl}rest/v1/$table?limit=3';
       final response = await http
           .get(
             Uri.parse(url),
             headers: {
               'apikey': _anonKey,
               'Authorization': 'Bearer $_anonKey',
+              'Accept': 'application/json',
             },
           )
           .timeout(const Duration(seconds: 15));
@@ -145,10 +144,10 @@ class TableDataService {
         return body.cast<Map<String, dynamic>>();
       }
       throw Exception(
-        'HTTP ${response.statusCode}: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+        'HTTP ${response.statusCode}: ${response.body.length > 300 ? response.body.substring(0, 300) : response.body}',
       );
     } catch (e) {
-      throw Exception('fetchRows failed for "$table": $e');
+      throw Exception('[$table] $e');
     }
   }
 
