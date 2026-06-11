@@ -4,54 +4,53 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/frarthur/supaview/releases)
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Licence](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
 
 ---
 
-**SupaView** est un véritable phpMyAdmin pour Supabase sur mobile.  
+SupaView est un véritable **phpMyAdmin pour Supabase sur mobile**, moderne et ergonomique.  
 L'application communique **uniquement** entre votre téléphone et Supabase via HTTPS.  
-Aucun serveur intermédiaire, aucune télémétrie, aucune publicité.
+Aucun serveur intermédiaire, aucune télémétrie, aucune publicité, aucun abonnement.
 
 ## ✨ Fonctionnalités
 
-| | Fonctionnalité | Statut |
+| | Fonctionnalité | Version |
 |---|---|---|
 | ✅ | Connexion sécurisée (URL + Anon Key + Service Role Key) | v1.0.0 |
 | ✅ | Dashboard avec statistiques du projet | v1.0.0 |
-| ✅ | Navigation par projets | v1.0.0 |
+| ✅ | Gestion des projets (ajout, modification, suppression) | v1.0.0 |
+| ✅ | Navigation par onglets (Dashboard, Tables, SQL, Storage) | v1.0.0 |
 | ✅ | Gestion des tables (CRUD, tri, filtre, pagination) | v1.0.0 |
-| ✅ | Éditeur SQL (SELECT) | v1.0.0 |
-| ✅ | Storage (navigation buckets, fichiers) | v1.0.0 |
-| ✅ | Auth (écran utilisateurs) | v1.0.0 |
-| ✅ | Edge Functions (écran) | v1.0.0 |
+| ✅ | Éditeur SQL (requêtes SELECT) | v1.0.0 |
+| ✅ | Storage (navigation buckets, fichiers, suppression) | v1.0.0 |
+| ✅ | Auth (gestion des utilisateurs) | v1.0.0 |
+| ✅ | Edge Functions (liste, logs, invocation) | v1.0.0 |
 | ✅ | Thème Material 3 (clair/sombre) | v1.0.0 |
 | 🔜 | Export CSV/JSON | À venir |
 | 🔜 | Mode hors-ligne | À venir |
-| 🔜 | Widgets Android | À venir |
 
-## 📥 Téléchargement
+## 📥 Télécharger
 
-**Dernière version stable : [v1.0.0](https://github.com/frarthur/supaview/releases/tag/v1.0.0)**
+**Dernière version stable :** [v1.0.0](https://github.com/frarthur/supaview/releases/tag/v1.0.0)
 
-[<img src="https://img.shields.io/badge/APK-Download%20v1.0.0-brightgreen?logo=android" height="40">](https://github.com/frarthur/supaview/releases/download/v1.0.0/supaview-v1.0.0.apk)
+[<img src="https://img.shields.io/badge/APK-T%C3%A9l%C3%A9charger%20v1.0.0-brightgreen?logo=android" height="40">](https://github.com/frarthur/supaview/releases/download/v1.0.0/supaview-v1.0.0.apk)
 
-> ⚠️ L'APK est généré automatiquement à chaque release via GitHub Actions.  
-> Activez "Installation depuis des sources inconnues" sur votre Android pour installer l'APK.
+> Activez **"Installation depuis des sources inconnues"** dans les paramètres Android pour installer l'APK.
 
 ## 🚀 Pour commencer
 
-1. **Créez un projet Supabase** sur [database.new](https://database.new)
-2. Dans votre projet, allez dans **Settings > API Keys**
-3. Copiez l'**URL du projet** et l'**Anon Key**
+1. Créez un projet Supabase sur [database.new](https://database.new)
+2. Dans votre projet, allez dans **Settings → API Keys**
+3. Copiez l'**URL du projet** et l'**Anon Key** (ou la **Publishable Key**)
 4. Ouvrez SupaView, ajoutez un projet, testez la connexion
-5. Pour les fonctionnalités avancées, ajoutez la **Service Role Key**
+5. Pour les fonctionnalités avancées (stats, SQL), ajoutez la **Service Role Key**
 
 ## 🏗️ Architecture
 
 ```
 lib/
 ├── core/           # Services, constantes, utilitaires
-├── features/       # Fonctionnalités (Clean Architecture)
+├── features/       # Clean Architecture
 │   ├── authentication/
 │   ├── projects/
 │   ├── tables/
@@ -61,43 +60,36 @@ lib/
 │   └── settings/
 ├── widgets/        # Widgets partagés
 ├── theme/          # Thème Material 3
-├── app.dart        # Configuration de l'application
-└── main.dart       # Point d'entrée
+├── app.dart
+└── main.dart
 ```
 
 **Stack technique :**
-- **Flutter 3.38+** avec Dart 3.10
-- **Riverpod** pour la gestion d'état
-- **GoRouter** pour la navigation
-- **Supabase Flutter SDK** pour la communication
-- **Hive** pour le stockage local
-- **Flutter Secure Storage** pour les clés API
+- **Flutter 3.38+** • Dart 3.10
+- **Riverpod** — gestion d'état
+- **GoRouter** — navigation
+- **Supabase Flutter SDK** — API
+- **Hive** — stockage local
+- **Flutter Secure Storage** — clés API chiffrées
 
 ## 🔧 Développement
 
 ```bash
-# Cloner le projet
 git clone https://github.com/frarthur/supaview.git
 cd supaview
-
-# Installer les dépendances
 flutter pub get
-
-# Générer les fichiers (freezed, json_serializable)
 dart run build_runner build
-
-# Lancer l'application
 flutter run
 ```
 
 ## 🗺️ Roadmap
 
-Voir [ROADMAP.md](ROADMAP.md) pour le plan de développement détaillé.
+Voir [ROADMAP.md](ROADMAP.md) pour le plan complet.
 
-## 📄 License
+## 📄 Licence
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Projet sous licence MIT. Voir le fichier [LICENSE](LICENSE).
 
 ---
 
-*SupaView n'est pas affilié à Supabase. Supabase est une marque déposée de Supabase Inc.*
+*SupaView n'est pas affilié à Supabase Inc.*
