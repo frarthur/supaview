@@ -258,13 +258,13 @@ Actions :
 
 # Phases
 
-## Phase 1 — Fondations
+## Phase 1 — Fondations ✅
 
-* [ ] Créer le projet Flutter
-* [ ] Configurer Riverpod
-* [ ] Configurer GoRouter
-* [ ] Mettre en place les thèmes
-* [ ] Écrire le ROADMAP.md
+* [x] Créer le projet Flutter
+* [x] Configurer Riverpod
+* [x] Configurer GoRouter
+* [x] Mettre en place les thèmes
+* [x] Écrire le ROADMAP.md
 
 ---
 
