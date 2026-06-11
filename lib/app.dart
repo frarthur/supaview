@@ -5,9 +5,9 @@ import 'package:supaview/core/router/app_router.dart';
 import 'package:supaview/theme/app_theme.dart';
 
 class SupaViewApp extends ConsumerWidget {
-  SupaViewApp({super.key});
+  const SupaViewApp({super.key});
 
-  final _appRouter = AppRouter();
+  static final _appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
