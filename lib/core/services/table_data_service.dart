@@ -33,10 +33,12 @@ class TableDataService {
 
     final definitions = spec['definitions'] as Map<String, dynamic>?;
 
+    final tablePattern = RegExp(r'^/[a-zA-Z][a-zA-Z0-9_]*$');
+
     final tables = <TableInfo>[];
     for (final entry in paths.entries) {
       final path = entry.key;
-      if (path.contains('{') || path.startsWith('/rpc')) continue;
+      if (!tablePattern.hasMatch(path) || path.startsWith('/rpc')) continue;
 
       final tableName = path.substring(1);
       final columns = _parseColumnsFromSpec(
@@ -126,26 +128,37 @@ class TableDataService {
     String? searchQuery,
     String? searchColumn,
   }) async {
+    final from = page * pageSize;
+
     try {
-      final url = '${_baseUrl}rest/v1/$table?limit=3';
+      final params = <String, String>{
+        'limit': pageSize.toString(),
+        'offset': from.toString(),
+      };
+      if (orderBy != null) {
+        params['order'] = ascending ? '$orderBy.asc' : '$orderBy.desc';
+      }
+      if (searchQuery != null && searchColumn != null) {
+        params[searchColumn] = 'like.*$searchQuery*';
+      }
+
+      final url = Uri.parse('${_baseUrl}rest/v1/$table')
+          .replace(queryParameters: params);
       final response = await http
-          .get(
-            Uri.parse(url),
-            headers: {
-              'apikey': _anonKey,
-              'Authorization': 'Bearer $_anonKey',
-              'Accept': 'application/json',
-            },
-          )
+          .get(url, headers: {
+            'apikey': _anonKey,
+            'Authorization': 'Bearer $_anonKey',
+          })
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as List;
         return body.cast<Map<String, dynamic>>();
       }
-      throw Exception(
-        'HTTP ${response.statusCode}: ${response.body.length > 300 ? response.body.substring(0, 300) : response.body}',
-      );
+      final snippet = response.body.length > 300
+          ? response.body.substring(0, 300)
+          : response.body;
+      throw Exception('HTTP ${response.statusCode}: $snippet');
     } catch (e) {
       throw Exception('[$table] $e');
     }
