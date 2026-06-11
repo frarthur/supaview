@@ -157,7 +157,9 @@ class _TableDataScreenState extends ConsumerState<TableDataScreen> {
       clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: DataTable(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: DataTable(
           sortColumnIndex: _orderBy != null
               ? columns.indexWhere((c) => c.name == _orderBy)
               : null,
@@ -215,6 +217,7 @@ class _TableDataScreenState extends ConsumerState<TableDataScreen> {
               }).toList(),
             );
           }),
+        ),
         ),
       ),
     );
