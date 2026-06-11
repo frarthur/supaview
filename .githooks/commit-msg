@@ -1,0 +1,16 @@
+#!/bin/sh
+commit_msg=$(head -1 "$1")
+pattern="^(feat|fix|refactor|style|test|docs|chore|perf|ci)(\([a-z0-9,-]+\))?: .{1,50}$"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo " ERROR: Invalid commit message format!"
+  echo ""
+  echo " Expected: <type>(<scope>): <subject>"
+  echo ""
+  echo " Types: feat | fix | refactor | style | test | docs | chore | perf | ci"
+  echo ""
+  echo " Example: feat(projects): add CRUD operations"
+  echo ""
+  exit 1
+fi

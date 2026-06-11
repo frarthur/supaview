@@ -1,0 +1,41 @@
+# Flutter
+**.dart_tool/
+**.packages/
+**.pub/
+build/
+flutter_*.png
+linked_*.ds_store
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+*.lock
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Runner.xcodeproj/project.xcworkspace/
+**/ios/Runner.xcodeproj/xcuserdata/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Environment
+.env
+.env.local
+*.env
