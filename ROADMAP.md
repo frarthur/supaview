@@ -348,7 +348,7 @@ Actions :
 * [ ] Splash screen
 * [ ] Captures Play Store
 * [ ] Site web
-* [ ] Politique de confidentialité
+* [x] Politique de confidentialité (GitHub Pages temporaire → à migrer sur noads.fr)
 * [ ] Publication sur Google Play
 
 ---
