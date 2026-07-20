@@ -1,4 +1,46 @@
-# Flutter
+# ─── Private local files ───────────────────────────────────────────
+*.local.md
+
+# ─── Environment ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Dependencies ───────────────────────────────────────────────────
+node_modules/
+vendor/
+.pnpm-store/
+
+# ─── Build / Output ─────────────────────────────────────────────────
+dist/
+build/
+out/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ─── IDE / Editor ───────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ─────────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
+Desktop.ini
+Thumbs.db
+
+# ─── Logs ───────────────────────────────────────────────────────────
+*.log
+logs/
+
+
+
+# ─── Flutter ───────────────────────────────────────────────────────────
 **.dart_tool/
 **.packages/
 **.pub/
@@ -22,23 +64,3 @@ build/
 **/ios/Flutter/Flutter.podspec
 **/ios/Runner.xcodeproj/project.xcworkspace/
 **/ios/Runner.xcodeproj/xcuserdata/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-*.log
-
-# Environment
-.env
-.env.local
-*.env
-
-# Design assets (local only)
-IMAGES/
